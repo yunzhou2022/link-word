@@ -5,6 +5,9 @@
     "version": "1.0.0",
     "platforms": ["ios"],
     "assetBundlePatterns": ["assets/**/*"],
+    "ios": {
+      "bundleIdentifier": "com.linkword.app"
+    },
     "plugins": [
       "expo-sqlite",
       [
