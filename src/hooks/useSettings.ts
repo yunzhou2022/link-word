@@ -1,12 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getSettings, saveSettings, type AppSettings } from '../storage/storage';
+import { getSettings, saveSettings, DEFAULT_SETTINGS, type AppSettings } from '../storage/storage';
 
 export function useSettings() {
-  const [settings, setSettings] = useState<AppSettings>({
-    graphMode: 'force',
-    nodeLimit: 20,
-    darkMode: true,
-  });
+  const [settings, setSettings] = useState<AppSettings>({ ...DEFAULT_SETTINGS });
 
   useEffect(() => {
     getSettings().then(setSettings);

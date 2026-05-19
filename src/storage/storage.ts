@@ -12,7 +12,7 @@ export interface AppSettings {
   darkMode: boolean;
 }
 
-const DEFAULT_SETTINGS: AppSettings = {
+export const DEFAULT_SETTINGS: AppSettings = {
   graphMode: 'force',
   nodeLimit: 20,
   darkMode: true,
