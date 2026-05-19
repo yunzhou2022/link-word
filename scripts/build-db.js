@@ -7,6 +7,7 @@ const cmu = require('cmu-pronouncing-dictionary');
 const WN_DIR = WordNetDB.path; // WordNetDB.path 已经指向 dict 目录
 const OUT_PATH = path.join(__dirname, '../assets/wordnet.db');
 
+fs.mkdirSync(path.dirname(OUT_PATH), { recursive: true });
 if (fs.existsSync(OUT_PATH)) fs.unlinkSync(OUT_PATH);
 const db = new Database(OUT_PATH);
 
@@ -49,7 +50,8 @@ function initSchema() {
     CREATE TABLE relations (
       from_synset TEXT NOT NULL,
       to_synset   TEXT NOT NULL,
-      type        TEXT NOT NULL
+      type        TEXT NOT NULL,
+      UNIQUE (from_synset, to_synset, type)
     );
     CREATE INDEX idx_relations_from ON relations(from_synset, type);
 
@@ -140,7 +142,7 @@ function parseDataFile(filePath, pos) {
     const examples = [];
     const definition = glossPart
       .replace(/"([^"]+)"/g, (_, ex) => { examples.push(ex); return ''; })
-      .replace(/;\s*$/, '').trim();
+      .replace(/(\s*;)+\s*$/, '').trim();
 
     synsets.push({
       id: `${offset}-${actualPos}`,
@@ -245,7 +247,7 @@ function main() {
   const insertWord = db.prepare('INSERT OR IGNORE INTO words (lemma, pos) VALUES (?, ?)');
   const insertSynset = db.prepare('INSERT OR REPLACE INTO synsets (id, pos, definition, examples) VALUES (?, ?, ?, ?)');
   const insertSense = db.prepare('INSERT OR IGNORE INTO senses (word_id, synset_id, sense_num) VALUES (?, ?, ?)');
-  const insertRelation = db.prepare('INSERT INTO relations (from_synset, to_synset, type) VALUES (?, ?, ?)');
+  const insertRelation = db.prepare('INSERT OR IGNORE INTO relations (from_synset, to_synset, type) VALUES (?, ?, ?)');
   const insertDerivation = db.prepare('INSERT OR IGNORE INTO derivations (from_word_id, to_word_id) VALUES (?, ?)');
   const insertPhonetic = db.prepare('INSERT OR IGNORE INTO phonetics (word_id, ipa) VALUES (?, ?)');
   const insertCollocation = db.prepare('INSERT INTO collocations (word_id, frame_text) VALUES (?, ?)');
