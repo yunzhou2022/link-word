@@ -23,6 +23,6 @@ export async function getDatabase(): Promise<SQLite.SQLiteDatabase> {
     await copyAsync({ from: asset.localUri!, to: dbPath });
   }
 
-  _db = await SQLite.openDatabaseAsync(dbName);
+  _db = await SQLite.openDatabaseAsync(dbPath);
   return _db;
 }

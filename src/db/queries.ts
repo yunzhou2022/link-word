@@ -83,6 +83,7 @@ export async function getWordGraph(
   const nodes: GraphNode[] = [{ id: lemma, label: lemma, pos: words[0].pos, relation: 'center' }];
   const edges: GraphEdge[] = [];
   const seenNodes = new Set<string>([lemma]);
+  const seenEdgeTargets = new Set<string>();
 
   const PRIORITY: Record<string, number> = { antonym: 0, similar: 1, hypernym: 2, hyponym: 3, meronym: 4, holonym: 5, also: 6 };
   const sortedRelations = [...relations].sort((a, b) => (PRIORITY[a.type] ?? 9) - (PRIORITY[b.type] ?? 9));
@@ -95,7 +96,8 @@ export async function getWordGraph(
       seenNodes.add(targetWord);
       nodes.push({ id: targetWord, label: targetWord, pos: '', relation: rel.type as GraphNode['relation'] });
     }
-    if (!edges.find((e) => e.source === lemma && e.target === targetWord)) {
+    if (!seenEdgeTargets.has(targetWord)) {
+      seenEdgeTargets.add(targetWord);
       edges.push({ source: lemma, target: targetWord, type: rel.type });
     }
   }
