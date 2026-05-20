@@ -1,9 +1,8 @@
-import type { SQLiteDatabase } from 'expo-sqlite';
-import type { WordDetailData } from './types';
+import type { DatabaseAdapter, WordDetailData } from './types';
 import type { GraphData, GraphNode, GraphEdge } from '../graph/graphTypes';
 
 export async function searchWords(
-  db: SQLiteDatabase,
+  db: DatabaseAdapter,
   query: string,
   limit = 10,
 ): Promise<Array<{ id: number; lemma: string; pos: string }>> {
@@ -14,7 +13,7 @@ export async function searchWords(
 }
 
 export async function getWordGraph(
-  db: SQLiteDatabase,
+  db: DatabaseAdapter,
   lemma: string,
   nodeLimit = 20,
 ): Promise<GraphData> {
@@ -121,7 +120,7 @@ export async function getWordGraph(
 }
 
 export async function getWordDetail(
-  db: SQLiteDatabase,
+  db: DatabaseAdapter,
   lemma: string,
 ): Promise<WordDetailData | null> {
   const words = await db.getAllAsync<{ id: number; pos: string }>(

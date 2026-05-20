@@ -1,3 +1,9 @@
+// 统一的数据库适配器接口，native(expo-sqlite) 和 web(sql.js) 都实现此接口
+export interface DatabaseAdapter {
+  getAllAsync<T>(sql: string, params?: unknown[]): Promise<T[]>;
+  getFirstAsync<T>(sql: string, params?: unknown[]): Promise<T | null>;
+}
+
 export interface WordRow {
   id: number;
   lemma: string;

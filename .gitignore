@@ -43,3 +43,4 @@ yarn-error.*
 assets/wordnet.db
 .superpowers/
 tmp/
+dist/
