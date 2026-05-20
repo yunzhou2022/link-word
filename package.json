@@ -4,19 +4,21 @@
   "main": "index.ts",
   "scripts": {
     "start": "expo start",
-    "ios": "expo start --ios",
+    "ios": "expo run:ios",
     "build-db": "node scripts/build-db.js",
-    "test": "jest"
+    "test": "jest",
+    "android": "expo run:android"
   },
   "dependencies": {
     "@gorhom/bottom-sheet": "^5.2.14",
-    "@react-native-async-storage/async-storage": "^3.0.3",
+    "@react-native-async-storage/async-storage": "^2.2.0",
     "@react-native-community/slider": "5.0.1",
     "@react-navigation/bottom-tabs": "^7.16.1",
     "@react-navigation/native": "^7.2.4",
     "@react-navigation/native-stack": "^7.15.1",
     "expo": "~54.0.33",
     "expo-asset": "~12.0.13",
+    "expo-dev-client": "~6.0.21",
     "expo-file-system": "~19.0.22",
     "expo-speech": "^14.0.8",
     "expo-sqlite": "^16.0.10",
@@ -31,7 +33,7 @@
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",
-    "@types/jest": "^30.0.0",
+    "@types/jest": "^29.5.14",
     "@types/react": "~19.1.0",
     "better-sqlite3": "^12.10.0",
     "cmu-pronouncing-dictionary": "^3.0.0",

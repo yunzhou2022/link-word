@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import {
-  View, TextInput, Text, FlatList, TouchableOpacity, StyleSheet, Keyboard,
+  View, TextInput, Text, ScrollView, TouchableOpacity, StyleSheet, Keyboard,
 } from 'react-native';
 import { getDatabase } from '../db/database';
 import { searchWords } from '../db/queries';
@@ -58,21 +58,19 @@ export function SearchBar({ onSelectWord }: Props) {
         )}
       </View>
       {results.length > 0 && (
-        <FlatList
-          style={styles.dropdown}
-          data={results}
-          keyExtractor={(item) => `${item.id}`}
-          keyboardShouldPersistTaps="handled"
-          renderItem={({ item }) => (
-            <TouchableOpacity style={styles.resultRow} onPress={() => handleSelect(item.lemma)}>
-              <Text style={styles.lemma}>{item.lemma}</Text>
-              <View style={styles.posBadge}>
-                <Text style={styles.posText}>{POS_LABEL[item.pos] ?? item.pos}</Text>
-              </View>
-            </TouchableOpacity>
-          )}
-          ItemSeparatorComponent={() => <View style={styles.separator} />}
-        />
+        <ScrollView style={styles.dropdown} keyboardShouldPersistTaps="handled">
+          {results.map((item, idx) => (
+            <View key={item.id}>
+              <TouchableOpacity style={styles.resultRow} onPress={() => handleSelect(item.lemma)}>
+                <Text style={styles.lemma}>{item.lemma}</Text>
+                <View style={styles.posBadge}>
+                  <Text style={styles.posText}>{POS_LABEL[item.pos] ?? item.pos}</Text>
+                </View>
+              </TouchableOpacity>
+              {idx < results.length - 1 && <View style={styles.separator} />}
+            </View>
+          ))}
+        </ScrollView>
       )}
     </View>
   );
