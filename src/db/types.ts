@@ -17,6 +17,12 @@ export interface SenseRow {
   sense_num: number;
 }
 
+export interface ConceptNetItem {
+  relation: string;
+  target: string;
+  weight: number;
+}
+
 export interface WordDetailData {
   lemma: string;
   pos: string;
@@ -29,4 +35,5 @@ export interface WordDetailData {
   }>;
   wordFamily: Array<{ lemma: string; pos: string }>;
   collocations: string[];
+  conceptnet: ConceptNetItem[];
 }

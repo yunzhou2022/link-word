@@ -171,6 +171,16 @@ export async function getWordDetail(
     [wordId],
   );
 
+  // ConceptNet 关系（表不存在时静默返回空）
+  let conceptnetRows: Array<{ relation: string; target: string; weight: number }> = [];
+  try {
+    conceptnetRows = await db.getAllAsync<{ relation: string; target: string; weight: number }>(
+      `SELECT relation, target, weight FROM conceptnet
+       WHERE word_id = ? ORDER BY weight DESC LIMIT 24`,
+      [wordId],
+    );
+  } catch (_) {}
+
   return {
     lemma,
     pos,
@@ -178,5 +188,6 @@ export async function getWordDetail(
     senses,
     wordFamily: wordFamilyRows,
     collocations: collocationRows.map((r) => r.frame_text),
+    conceptnet: conceptnetRows,
   };
 }

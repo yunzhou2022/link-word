@@ -6,6 +6,21 @@ import { translateToZh } from '../utils/translate';
 
 const POS_LABEL: Record<string, string> = { n: 'noun', v: 'verb', a: 'adj', r: 'adv' };
 
+const CN_LABEL: Record<string, string> = {
+  UsedFor: '用途',
+  IsA: '是一种',
+  HasA: '拥有',
+  PartOf: '属于',
+  Causes: '会导致',
+  CapableOf: '能够',
+  AtLocation: '位于',
+  HasProperty: '具有特征',
+  ReceivesAction: '可以被',
+  MotivatedByGoal: '动机是',
+  Desires: '渴望',
+  CausesDesire: '使人想要',
+};
+
 interface TranslationState {
   definition: string;
   examples: string[];
@@ -125,6 +140,30 @@ export function WordDetail({ detail, isFavorited, onToggleFavorite }: Props) {
         </View>
       )}
 
+      {/* ConceptNet 概念关系 */}
+      {detail.conceptnet.length > 0 && (
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>概念关系</Text>
+          {Object.entries(
+            detail.conceptnet.reduce<Record<string, string[]>>((acc, item) => {
+              (acc[item.relation] = acc[item.relation] || []).push(item.target);
+              return acc;
+            }, {}),
+          ).map(([rel, targets]) => (
+            <View key={rel} style={styles.cnRow}>
+              <Text style={styles.cnRelLabel}>{CN_LABEL[rel] ?? rel}</Text>
+              <View style={styles.cnTagWrap}>
+                {targets.slice(0, 6).map((t, i) => (
+                  <View key={i} style={styles.cnTag}>
+                    <Text style={styles.cnTagText}>{t}</Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          ))}
+        </View>
+      )}
+
       <View style={{ height: 24 }} />
     </View>
   );
@@ -160,4 +199,9 @@ const styles = StyleSheet.create({
   familyText: { color: '#fa709a', fontSize: 13 },
   familyPos: { color: '#fa709a88', fontSize: 11 },
   collocation: { color: '#aaa', fontSize: 13, lineHeight: 22 },
+  cnRow: { marginBottom: 8 },
+  cnRelLabel: { color: '#10b981', fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 },
+  cnTagWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  cnTag: { backgroundColor: '#10b98120', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3, borderWidth: 1, borderColor: '#10b98140' },
+  cnTagText: { color: '#6ee7b7', fontSize: 12 },
 });

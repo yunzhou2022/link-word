@@ -6,6 +6,7 @@
     "start": "expo start",
     "ios": "expo run:ios",
     "build-db": "node scripts/build-db.js",
+    "build-conceptnet": "node scripts/build-conceptnet.js",
     "test": "jest",
     "android": "expo run:android"
   },
