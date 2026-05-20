@@ -31,9 +31,10 @@ interface Props {
   detail: WordDetailData;
   isFavorited: boolean;
   onToggleFavorite: () => void;
+  onWordPress?: (word: string) => void;
 }
 
-export function WordDetail({ detail, isFavorited, onToggleFavorite }: Props) {
+export function WordDetail({ detail, isFavorited, onToggleFavorite, onWordPress }: Props) {
   const [senseIdx, setSenseIdx] = useState(0);
   const [translation, setTranslation] = useState<TranslationState>({ definition: '', examples: [], loading: false });
 
@@ -121,10 +122,10 @@ export function WordDetail({ detail, isFavorited, onToggleFavorite }: Props) {
           <Text style={styles.sectionLabel}>词族</Text>
           <View style={styles.tagRow}>
             {detail.wordFamily.map((w, i) => (
-              <View key={i} style={styles.familyTag}>
+              <TouchableOpacity key={i} style={styles.familyTag} onPress={() => onWordPress?.(w.lemma)}>
                 <Text style={styles.familyText}>{w.lemma}</Text>
                 <Text style={styles.familyPos}> {POS_LABEL[w.pos] ?? w.pos}</Text>
-              </View>
+              </TouchableOpacity>
             ))}
           </View>
         </View>
@@ -154,9 +155,9 @@ export function WordDetail({ detail, isFavorited, onToggleFavorite }: Props) {
               <Text style={styles.cnRelLabel}>{CN_LABEL[rel] ?? rel}</Text>
               <View style={styles.cnTagWrap}>
                 {targets.slice(0, 6).map((t, i) => (
-                  <View key={i} style={styles.cnTag}>
+                  <TouchableOpacity key={i} style={styles.cnTag} onPress={() => onWordPress?.(t)}>
                     <Text style={styles.cnTagText}>{t}</Text>
-                  </View>
+                  </TouchableOpacity>
                 ))}
               </View>
             </View>

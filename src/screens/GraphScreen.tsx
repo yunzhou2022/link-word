@@ -86,6 +86,7 @@ export function GraphScreen({ route, navigation }: Props) {
               detail={detail}
               isFavorited={favorited}
               onToggleFavorite={handleToggleFavorite}
+              onWordPress={handleNodeTap}
             />
           ) : detailLoading ? (
             <ActivityIndicator style={{ margin: 32 }} color="#6c63ff" />
