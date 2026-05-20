@@ -1,7 +1,7 @@
 {
   "buildCommand": "npx expo export -p web",
   "outputDirectory": "dist",
-  "installCommand": "pnpm install",
+  "installCommand": "pnpm install --registry https://registry.npmjs.org",
   "headers": [
     {
       "source": "/assets/(.*\\.db$)",
