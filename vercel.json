@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npx expo export -p web",
+  "buildCommand": "node scripts/build-db.js && npx expo export -p web",
   "outputDirectory": "dist",
   "installCommand": "npx pnpm@10 install",
   "headers": [
