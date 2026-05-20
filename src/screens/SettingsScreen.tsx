@@ -5,6 +5,7 @@ import Slider from '@react-native-community/slider';
 import { useSettings } from '../hooks/useSettings';
 import { clearHistory } from '../storage/storage';
 import { useTheme } from '../theme/ThemeContext';
+import { THEMES } from '../theme/themes';
 import type { Theme } from '../theme/themes';
 
 function createStyles(t: Theme) {
@@ -23,6 +24,13 @@ function createStyles(t: Theme) {
     row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 8 },
     rowLabel: { color: t.textPrimary, fontSize: 15 },
     rowValue: { color: t.accent, fontSize: 15 },
+    swatchRow: { flexDirection: 'row', gap: 12, flexWrap: 'wrap' },
+    swatchBtn: { alignItems: 'center', gap: 6 },
+    swatchCircle: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
+    swatchCircleActive: { borderWidth: 3, borderColor: t.textPrimary },
+    swatchInner: { width: 32, height: 32, borderRadius: 16 },
+    swatchLabel: { color: t.textSecondary, fontSize: 11 },
+    swatchLabelActive: { color: t.textPrimary, fontWeight: 'bold' },
   });
 }
 
@@ -60,6 +68,30 @@ export function SettingsScreen() {
               <Text style={styles.modeIcon}>🌿</Text>
               <Text style={[styles.modeText, settings.graphMode === 'tree' && styles.modeTextActive]}>层级树</Text>
             </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* 主题选择 */}
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>主题</Text>
+          <View style={styles.swatchRow}>
+            {Object.values(THEMES).map((theme) => {
+              const isActive = settings.themeId === theme.id;
+              return (
+                <TouchableOpacity
+                  key={theme.id}
+                  style={styles.swatchBtn}
+                  onPress={() => update({ themeId: theme.id })}
+                >
+                  <View style={[styles.swatchCircle, isActive && styles.swatchCircleActive]}>
+                    <View style={[styles.swatchInner, { backgroundColor: theme.swatch, borderWidth: theme.id === 'light' ? 1 : 0, borderColor: t.border }]} />
+                  </View>
+                  <Text style={[styles.swatchLabel, isActive && styles.swatchLabelActive]}>
+                    {theme.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
         </View>
 
