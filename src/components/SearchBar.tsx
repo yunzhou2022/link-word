@@ -20,9 +20,13 @@ export function SearchBar({ onSelectWord }: Props) {
     if (!query.trim()) { setResults([]); return; }
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(async () => {
-      const db = await getDatabase();
-      const rows = await searchWords(db, query.trim().toLowerCase(), 10);
-      setResults(rows);
+      try {
+        const db = await getDatabase();
+        const rows = await searchWords(db, query.trim().toLowerCase(), 10);
+        setResults(rows);
+      } catch {
+        setResults([]);
+      }
     }, 200);
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
   }, [query]);
