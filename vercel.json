@@ -1,7 +1,7 @@
 {
   "buildCommand": "npx expo export -p web",
   "outputDirectory": "dist",
-  "installCommand": "pnpm install",
+  "installCommand": "npx pnpm@10 install",
   "headers": [
     {
       "source": "/assets/(.*\\.db$)",

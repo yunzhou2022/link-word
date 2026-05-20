@@ -2,6 +2,7 @@
   "name": "link-word",
   "version": "1.0.0",
   "main": "index.ts",
+  "packageManager": "pnpm@10.30.3",
   "scripts": {
     "start": "expo start",
     "web": "expo start --web",
