@@ -2,11 +2,9 @@ import * as SQLite from 'expo-sqlite';
 import { Asset } from 'expo-asset';
 import { documentDirectory, getInfoAsync, makeDirectoryAsync, copyAsync } from 'expo-file-system/legacy';
 
-let _db: SQLite.SQLiteDatabase | null = null;
+let _initPromise: Promise<SQLite.SQLiteDatabase> | null = null;
 
-export async function getDatabase(): Promise<SQLite.SQLiteDatabase> {
-  if (_db) return _db;
-
+async function initDatabase(): Promise<SQLite.SQLiteDatabase> {
   const dbName = 'wordnet.db';
   const dbPath = `${documentDirectory}SQLite/${dbName}`;
   const dbDir = `${documentDirectory}SQLite/`;
@@ -23,6 +21,11 @@ export async function getDatabase(): Promise<SQLite.SQLiteDatabase> {
     await copyAsync({ from: asset.localUri!, to: dbPath });
   }
 
-  _db = await SQLite.openDatabaseAsync(dbPath);
-  return _db;
+  // Pass only the filename — expo-sqlite resolves it relative to documentDirectory/SQLite/
+  return SQLite.openDatabaseAsync(dbName);
+}
+
+export function getDatabase(): Promise<SQLite.SQLiteDatabase> {
+  if (!_initPromise) _initPromise = initDatabase();
+  return _initPromise;
 }

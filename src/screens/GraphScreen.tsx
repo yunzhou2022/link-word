@@ -22,7 +22,7 @@ export function GraphScreen({ route, navigation }: Props) {
   const sheetRef = useRef<BottomSheet>(null);
   const { settings } = useSettings();
   const { graphData, loading: graphLoading } = useWordGraph(currentWord, settings);
-  const { detail } = useWordDetail(currentWord);
+  const { detail, loading: detailLoading } = useWordDetail(currentWord);
 
   useEffect(() => {
     isFavorited(currentWord).then(setFavorited);
@@ -86,8 +86,10 @@ export function GraphScreen({ route, navigation }: Props) {
               isFavorited={favorited}
               onToggleFavorite={handleToggleFavorite}
             />
-          ) : (
+          ) : detailLoading ? (
             <ActivityIndicator style={{ margin: 32 }} color="#6c63ff" />
+          ) : (
+            <Text style={styles.notFound}>"{currentWord}" not found</Text>
           )}
         </BottomSheetScrollView>
       </BottomSheet>
@@ -105,4 +107,5 @@ const styles = StyleSheet.create({
   graphArea: { flex: 1 },
   sheetBg: { backgroundColor: '#16213e' },
   sheetHandle: { backgroundColor: '#6c63ff' },
+  notFound: { color: '#888', fontSize: 15, textAlign: 'center', margin: 32 },
 });

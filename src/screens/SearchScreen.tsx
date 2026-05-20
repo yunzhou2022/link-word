@@ -1,6 +1,6 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/AppNavigator';
 import { SearchBar } from '../components/SearchBar';
@@ -18,7 +18,7 @@ export function SearchScreen() {
     setFavorites((await getFavorites()).slice(0, 5));
   }, []);
 
-  useEffect(() => { refresh(); }, [refresh]);
+  useFocusEffect(useCallback(() => { refresh(); }, [refresh]));
 
   const navigateToWord = useCallback(
     async (word: string) => {
