@@ -21,7 +21,7 @@ export function WordDetail({ detail, isFavorited, onToggleFavorite }: Props) {
   const sense = detail.senses[senseIdx];
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+    <View style={styles.container}>
       <View style={styles.headerRow}>
         <View style={styles.lemmaGroup}>
           <Text style={styles.lemma}>{detail.lemma}</Text>
@@ -89,7 +89,7 @@ export function WordDetail({ detail, isFavorited, onToggleFavorite }: Props) {
       )}
 
       <View style={{ height: 24 }} />
-    </ScrollView>
+    </View>
   );
 }
 

@@ -15,13 +15,23 @@ interface Props {
 
 export const ForceGraph = forwardRef<ForceGraphHandle, Props>(({ onNodeTap, onReady }, ref) => {
   const webViewRef = useRef<WebView>(null);
+  const isReadyRef = useRef(false);
+  const pendingRef = useRef<(GraphData & { mode: 'force' | 'tree' }) | null>(null);
+
+  const sendToWebView = useCallback((data: GraphData & { mode: 'force' | 'tree' }) => {
+    const msg: ToWebViewMessage = { type: 'LOAD_GRAPH', word: '', ...data };
+    webViewRef.current?.injectJavaScript(
+      `window.dispatchEvent(new MessageEvent('message', { data: ${JSON.stringify(JSON.stringify(msg))} })); true;`
+    );
+  }, []);
 
   useImperativeHandle(ref, () => ({
     loadGraph(data) {
-      const msg: ToWebViewMessage = { type: 'LOAD_GRAPH', word: '', ...data };
-      webViewRef.current?.injectJavaScript(
-        `window.dispatchEvent(new MessageEvent('message', { data: ${JSON.stringify(JSON.stringify(msg))} })); true;`
-      );
+      if (isReadyRef.current) {
+        sendToWebView(data);
+      } else {
+        pendingRef.current = data;
+      }
     },
   }));
 
@@ -29,9 +39,16 @@ export const ForceGraph = forwardRef<ForceGraphHandle, Props>(({ onNodeTap, onRe
     try {
       const msg = JSON.parse(e.nativeEvent.data) as FromWebViewMessage;
       if (msg.type === 'NODE_TAP') onNodeTap(msg.word);
-      if (msg.type === 'GRAPH_READY') onReady?.();
+      if (msg.type === 'GRAPH_READY') {
+        isReadyRef.current = true;
+        onReady?.();
+        if (pendingRef.current) {
+          sendToWebView(pendingRef.current);
+          pendingRef.current = null;
+        }
+      }
     } catch (_) {}
-  }, [onNodeTap, onReady]);
+  }, [onNodeTap, onReady, sendToWebView]);
 
   return (
     <WebView
