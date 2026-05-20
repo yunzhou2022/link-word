@@ -21,6 +21,11 @@ const COLORS = {
   meronym:'#a78bfa', holonym:'#a78bfa', also:'#888', default:'#666'
 };
 const RADII = { center:26, synonym:15, hypernym:14, hyponym:13, antonym:14, similar:13, derivation:13, default:12 };
+const RELATION_ZH = {
+  synonym:'同义词', hypernym:'上位词', hyponym:'下位词',
+  antonym:'反义词', similar:'近义词', derivation:'派生词',
+  meronym:'部分词', holonym:'整体词', also:'相关词',
+};
 
 let simulation = null;
 const svg = d3.select('#graph');
@@ -37,11 +42,11 @@ function postToRN(msg) {
   try { window.ReactNativeWebView?.postMessage(JSON.stringify(msg)); } catch(_) {}
 }
 
-function loadGraph(data) {
-  const { nodes, edges } = data;
+/* ── 力导向模式 ── */
+function loadForceGraph(nodes, edges) {
+  if (simulation) { simulation.stop(); simulation = null; }
   linkG.selectAll('*').remove();
   nodeG.selectAll('*').remove();
-  if (simulation) { simulation.stop(); simulation = null; }
 
   const w = window.innerWidth, h = window.innerHeight;
 
@@ -85,10 +90,125 @@ function loadGraph(data) {
     });
 }
 
+/* ── 层级树模式 ── */
+function buildHierarchy(nodes) {
+  const center = nodes.find(n => n.relation === 'center') || nodes[0];
+  const others = nodes.filter(n => n.relation !== 'center');
+
+  // 按关系类型分组，固定顺序让相同颜色相邻
+  const ORDER = ['antonym','similar','synonym','hypernym','hyponym','derivation','meronym','holonym','also'];
+  const groups = {};
+  for (const n of others) {
+    (groups[n.relation] = groups[n.relation] || []).push(n);
+  }
+
+  const children = ORDER
+    .filter(rel => groups[rel])
+    .concat(Object.keys(groups).filter(r => !ORDER.includes(r)))
+    .map(rel => ({
+      id: 'grp-' + rel,
+      label: RELATION_ZH[rel] || rel,
+      nodeType: 'group',
+      relation: rel,
+      children: groups[rel].map(n => ({ ...n, nodeType: 'word' })),
+    }));
+
+  return { id: 'root', label: center.label, nodeType: 'center', relation: 'center', children };
+}
+
+function loadTreeGraph(nodes) {
+  if (simulation) { simulation.stop(); simulation = null; }
+  linkG.selectAll('*').remove();
+  nodeG.selectAll('*').remove();
+
+  const w = window.innerWidth, h = window.innerHeight;
+  const cx = w / 2, cy = h / 2;
+  const maxR = Math.min(w, h) / 2 - 60;
+
+  const root = d3.hierarchy(buildHierarchy(nodes));
+
+  // 放射状 cluster 布局：叶节点在外圈，等距排列
+  d3.cluster()
+    .size([2 * Math.PI, maxR])
+    .separation((a, b) => (a.parent === b.parent ? 1 : 2) / a.depth)
+    (root);
+
+  // 径向坐标 → 笛卡尔
+  const rxy = d => [cx + d.y * Math.cos(d.x - Math.PI / 2), cy + d.y * Math.sin(d.x - Math.PI / 2)];
+
+  // 连接线
+  linkG.selectAll('path').data(root.links()).enter().append('path')
+    .attr('class', 'link')
+    .attr('stroke', d => COLORS[d.target.data.relation] || COLORS.default)
+    .attr('stroke-width', d => d.source.depth === 0 ? 1.5 : 1)
+    .attr('d', d3.linkRadial().angle(d => d.x).radius(d => d.y))
+    .attr('transform', \`translate(\${cx},\${cy})\`);
+
+  // 节点 g
+  const nodeEl = nodeG.selectAll('g').data(root.descendants()).enter().append('g')
+    .attr('class', 'node')
+    .attr('transform', d => { const [x, y] = rxy(d); return \`translate(\${x},\${y})\`; })
+    .on('click', (_, d) => {
+      if (d.data.nodeType === 'word') postToRN({ type: 'NODE_TAP', word: d.data.label });
+    });
+
+  // 中心词
+  nodeEl.filter(d => d.data.nodeType === 'center')
+    .append('circle').attr('r', 24).attr('fill', '#6c63ff').attr('stroke', 'rgba(255,255,255,0.8)').attr('stroke-width', 2);
+
+  // 关系分组标签（小胶囊）
+  nodeEl.filter(d => d.data.nodeType === 'group').each(function(d) {
+    const color = COLORS[d.data.relation] || COLORS.default;
+    const label = d.data.label;
+    const tw = label.length * 9 + 12;
+    // 根据角度决定文字锚点方向
+    const angle = ((d.x - Math.PI / 2) * 180 / Math.PI + 360) % 360;
+    const anchor = angle > 90 && angle < 270 ? 'end' : 'start';
+    const dx = anchor === 'end' ? -(tw / 2 + 4) : (tw / 2 + 4);
+
+    d3.select(this).append('rect')
+      .attr('x', -tw / 2).attr('y', -11).attr('width', tw).attr('height', 22).attr('rx', 11)
+      .attr('fill', color + '30').attr('stroke', color).attr('stroke-width', 1);
+    d3.select(this).select('text').remove(); // 后面统一加
+  });
+
+  // 词节点
+  nodeEl.filter(d => d.data.nodeType === 'word').each(function(d) {
+    const r = RADII[d.data.relation] || RADII.default;
+    d3.select(this).append('circle').attr('r', r).attr('fill', COLORS[d.data.relation] || COLORS.default);
+  });
+
+  // 所有节点文字（统一处理方向）
+  nodeEl.each(function(d) {
+    const angle = ((d.x - Math.PI / 2) * 180 / Math.PI + 360) % 360;
+    const rightSide = angle <= 90 || angle >= 270;
+    const t = d3.select(this).append('text')
+      .text(d.data.label)
+      .attr('font-size', d.data.nodeType === 'center' ? 13 : d.data.nodeType === 'group' ? 10 : 10)
+      .attr('font-weight', d.data.nodeType === 'center' ? 'bold' : 'normal')
+      .attr('fill', d.data.nodeType === 'group' ? (COLORS[d.data.relation] || COLORS.default) : 'white')
+      .attr('dy', '0.35em');
+
+    if (d.data.nodeType === 'center' || d.data.nodeType === 'group') {
+      t.attr('text-anchor', 'middle');
+    } else {
+      const r = RADII[d.data.relation] || RADII.default;
+      t.attr('text-anchor', rightSide ? 'start' : 'end')
+       .attr('dx', rightSide ? r + 4 : -(r + 4));
+    }
+  });
+}
+
+/* ── 消息分发 ── */
 window.addEventListener('message', e => {
   try {
     const msg = JSON.parse(e.data);
-    if (msg.type === 'LOAD_GRAPH') loadGraph(msg);
+    if (msg.type !== 'LOAD_GRAPH') return;
+    if (msg.mode === 'tree') {
+      loadTreeGraph(msg.nodes);
+    } else {
+      loadForceGraph(msg.nodes, msg.edges);
+    }
   } catch(_) {}
 });
 
