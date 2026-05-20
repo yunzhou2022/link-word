@@ -1,8 +1,10 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 import * as Speech from 'expo-speech';
 import type { WordDetailData } from '../db/types';
 import { translateToZh } from '../utils/translate';
+import { useTheme } from '../theme/ThemeContext';
+import type { Theme } from '../theme/themes';
 
 const POS_LABEL: Record<string, string> = { n: 'noun', v: 'verb', a: 'adj', r: 'adv' };
 
@@ -34,9 +36,50 @@ interface Props {
   onWordPress?: (word: string) => void;
 }
 
+function createStyles(t: Theme) {
+  return StyleSheet.create({
+    container: { paddingHorizontal: 16, paddingTop: 8 },
+    headerRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12 },
+    lemmaGroup: { flexDirection: 'row', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' },
+    lemma: { color: t.textPrimary, fontSize: 22, fontWeight: 'bold' },
+    pos: { color: t.textSecondary, fontSize: 14 },
+    phonetic: { color: t.accent, fontSize: 14 },
+    actions: { flexDirection: 'row', gap: 8 },
+    iconBtn: { padding: 4 },
+    iconText: { fontSize: 20 },
+    senseTabs: { flexDirection: 'row', marginBottom: 10 },
+    senseTab: {
+      width: 32, height: 32, borderRadius: 16, borderWidth: 1, borderColor: t.border,
+      alignItems: 'center', justifyContent: 'center', marginRight: 8,
+    },
+    senseTabActive: { backgroundColor: t.accent, borderColor: t.accent },
+    senseTabText: { color: t.textSecondary, fontSize: 14 },
+    senseTabTextActive: { color: t.textPrimary },
+    definition: { color: t.textSecondary, fontSize: 15, lineHeight: 22, marginBottom: 4 },
+    definitionZh: { color: t.accent, fontSize: 14, lineHeight: 20, marginBottom: 10, opacity: 0.85 },
+    exampleBox: { backgroundColor: t.cardAlt, borderRadius: 8, padding: 10, marginBottom: 8, borderLeftWidth: 3, borderLeftColor: t.accent },
+    exampleText: { color: t.textSecondary, fontSize: 13, fontStyle: 'italic', lineHeight: 18 },
+    exampleZh: { color: t.accent, fontSize: 12, lineHeight: 18, marginTop: 4, opacity: 0.8 },
+    section: { marginTop: 16 },
+    sectionLabel: { color: t.textDisabled, fontSize: 12, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 },
+    tagRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+    familyTag: { flexDirection: 'row', backgroundColor: '#fa709a22', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 5 },
+    familyText: { color: '#fa709a', fontSize: 13 },
+    familyPos: { color: '#fa709a88', fontSize: 11 },
+    collocation: { color: t.textSecondary, fontSize: 13, lineHeight: 22 },
+    cnRow: { marginBottom: 8 },
+    cnRelLabel: { color: '#10b981', fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 },
+    cnTagWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+    cnTag: { backgroundColor: '#10b98120', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3, borderWidth: 1, borderColor: '#10b98140' },
+    cnTagText: { color: '#6ee7b7', fontSize: 12 },
+  });
+}
+
 export function WordDetail({ detail, isFavorited, onToggleFavorite, onWordPress }: Props) {
   const [senseIdx, setSenseIdx] = useState(0);
   const [translation, setTranslation] = useState<TranslationState>({ definition: '', examples: [], loading: false });
+  const t = useTheme();
+  const styles = useMemo(() => createStyles(t), [t]);
 
   const sense = detail.senses[senseIdx];
 
@@ -99,7 +142,7 @@ export function WordDetail({ detail, isFavorited, onToggleFavorite, onWordPress 
         <>
           <Text style={styles.definition}>{sense.definition}</Text>
           {translation.loading ? (
-            <ActivityIndicator size="small" color="#6c63ff" style={{ marginBottom: 8, alignSelf: 'flex-start' }} />
+            <ActivityIndicator size="small" color={t.accent} style={{ marginBottom: 8, alignSelf: 'flex-start' }} />
           ) : translation.definition ? (
             <Text style={styles.definitionZh}>{translation.definition}</Text>
           ) : null}
@@ -154,9 +197,9 @@ export function WordDetail({ detail, isFavorited, onToggleFavorite, onWordPress 
             <View key={rel} style={styles.cnRow}>
               <Text style={styles.cnRelLabel}>{CN_LABEL[rel] ?? rel}</Text>
               <View style={styles.cnTagWrap}>
-                {targets.slice(0, 6).map((t, i) => (
-                  <TouchableOpacity key={i} style={styles.cnTag} onPress={() => onWordPress?.(t)}>
-                    <Text style={styles.cnTagText}>{t}</Text>
+                {targets.slice(0, 6).map((tgt, i) => (
+                  <TouchableOpacity key={i} style={styles.cnTag} onPress={() => onWordPress?.(tgt)}>
+                    <Text style={styles.cnTagText}>{tgt}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -169,40 +212,3 @@ export function WordDetail({ detail, isFavorited, onToggleFavorite, onWordPress 
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { paddingHorizontal: 16, paddingTop: 8 },
-  headerRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 12 },
-  lemmaGroup: { flexDirection: 'row', alignItems: 'baseline', gap: 8, flexWrap: 'wrap' },
-  lemma: { color: 'white', fontSize: 22, fontWeight: 'bold' },
-  pos: { color: '#888', fontSize: 14 },
-  phonetic: { color: '#6c63ff', fontSize: 14 },
-  actions: { flexDirection: 'row', gap: 8 },
-  iconBtn: { padding: 4 },
-  iconText: { fontSize: 20 },
-  senseTabs: { flexDirection: 'row', marginBottom: 10 },
-  senseTab: {
-    width: 32, height: 32, borderRadius: 16, borderWidth: 1, borderColor: '#0f3460',
-    alignItems: 'center', justifyContent: 'center', marginRight: 8,
-  },
-  senseTabActive: { backgroundColor: '#6c63ff', borderColor: '#6c63ff' },
-  senseTabText: { color: '#888', fontSize: 14 },
-  senseTabTextActive: { color: 'white' },
-  definition: { color: '#ddd', fontSize: 15, lineHeight: 22, marginBottom: 4 },
-  definitionZh: { color: '#6c63ff', fontSize: 14, lineHeight: 20, marginBottom: 10, opacity: 0.85 },
-  exampleBox: { backgroundColor: '#0f3460', borderRadius: 8, padding: 10, marginBottom: 8, borderLeftWidth: 3, borderLeftColor: '#6c63ff' },
-  exampleText: { color: '#aaa', fontSize: 13, fontStyle: 'italic', lineHeight: 18 },
-  exampleZh: { color: '#6c63ff', fontSize: 12, lineHeight: 18, marginTop: 4, opacity: 0.8 },
-  section: { marginTop: 16 },
-  sectionLabel: { color: '#555', fontSize: 12, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 8 },
-  tagRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  familyTag: { flexDirection: 'row', backgroundColor: '#fa709a22', borderRadius: 10, paddingHorizontal: 10, paddingVertical: 5 },
-  familyText: { color: '#fa709a', fontSize: 13 },
-  familyPos: { color: '#fa709a88', fontSize: 11 },
-  collocation: { color: '#aaa', fontSize: 13, lineHeight: 22 },
-  cnRow: { marginBottom: 8 },
-  cnRelLabel: { color: '#10b981', fontSize: 11, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 },
-  cnTagWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  cnTag: { backgroundColor: '#10b98120', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3, borderWidth: 1, borderColor: '#10b98140' },
-  cnTagText: { color: '#6ee7b7', fontSize: 12 },
-});

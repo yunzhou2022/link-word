@@ -1,11 +1,35 @@
+import { useMemo } from 'react';
 import { View, Text, Switch, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Slider from '@react-native-community/slider';
 import { useSettings } from '../hooks/useSettings';
 import { clearHistory } from '../storage/storage';
+import { useTheme } from '../theme/ThemeContext';
+import type { Theme } from '../theme/themes';
+
+function createStyles(t: Theme) {
+  return StyleSheet.create({
+    safe: { flex: 1, backgroundColor: t.bg },
+    title: { color: t.textPrimary, fontSize: 28, fontWeight: 'bold', padding: 16 },
+    section: { paddingHorizontal: 16, marginBottom: 24 },
+    sectionLabel: { color: t.textDisabled, fontSize: 12, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 },
+    card: { backgroundColor: t.card, borderRadius: 14, padding: 14 },
+    modeRow: { flexDirection: 'row', gap: 12 },
+    modeBtn: { flex: 1, backgroundColor: t.card, borderRadius: 12, padding: 14, alignItems: 'center', gap: 4 },
+    modeBtnActive: { backgroundColor: t.accent },
+    modeIcon: { fontSize: 22 },
+    modeText: { color: t.textSecondary, fontSize: 13 },
+    modeTextActive: { color: t.textPrimary, fontWeight: 'bold' },
+    row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 8 },
+    rowLabel: { color: t.textPrimary, fontSize: 15 },
+    rowValue: { color: t.accent, fontSize: 15 },
+  });
+}
 
 export function SettingsScreen() {
   const { settings, update } = useSettings();
+  const t = useTheme();
+  const styles = useMemo(() => createStyles(t), [t]);
 
   const handleClearHistory = () => {
     Alert.alert('清除历史', '确认清空所有搜索历史？', [
@@ -52,16 +76,16 @@ export function SettingsScreen() {
               step={5}
               value={settings.nodeLimit}
               onSlidingComplete={(v) => update({ nodeLimit: v })}
-              minimumTrackTintColor="#6c63ff"
-              maximumTrackTintColor="#0f3460"
-              thumbTintColor="#6c63ff"
+              minimumTrackTintColor={t.accent}
+              maximumTrackTintColor={t.border}
+              thumbTintColor={t.accent}
             />
             <View style={styles.row}>
               <Text style={styles.rowLabel}>深色模式</Text>
               <Switch
                 value={settings.darkMode}
                 onValueChange={(v) => update({ darkMode: v })}
-                trackColor={{ true: '#6c63ff' }}
+                trackColor={{ true: t.accent }}
               />
             </View>
           </View>
@@ -83,20 +107,3 @@ export function SettingsScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#0f0f1a' },
-  title: { color: 'white', fontSize: 28, fontWeight: 'bold', padding: 16 },
-  section: { paddingHorizontal: 16, marginBottom: 24 },
-  sectionLabel: { color: '#555', fontSize: 12, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 },
-  card: { backgroundColor: '#16213e', borderRadius: 14, padding: 14 },
-  modeRow: { flexDirection: 'row', gap: 12 },
-  modeBtn: { flex: 1, backgroundColor: '#16213e', borderRadius: 12, padding: 14, alignItems: 'center', gap: 4 },
-  modeBtnActive: { backgroundColor: '#6c63ff' },
-  modeIcon: { fontSize: 22 },
-  modeText: { color: '#888', fontSize: 13 },
-  modeTextActive: { color: 'white', fontWeight: 'bold' },
-  row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 8 },
-  rowLabel: { color: 'white', fontSize: 15 },
-  rowValue: { color: '#6c63ff', fontSize: 15 },
-});

@@ -10,12 +10,14 @@ export interface AppSettings {
   graphMode: 'force' | 'tree';
   nodeLimit: number;
   darkMode: boolean;
+  themeId: string;
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
   graphMode: 'force',
   nodeLimit: 20,
   darkMode: true,
+  themeId: 'dark-purple',
 };
 
 export async function getFavorites(): Promise<string[]> {

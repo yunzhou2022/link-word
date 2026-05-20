@@ -6,6 +6,7 @@ import { SearchScreen } from '../screens/SearchScreen';
 import { GraphScreen } from '../screens/GraphScreen';
 import { FavoritesScreen } from '../screens/FavoritesScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
+import { useTheme } from '../theme/ThemeContext';
 
 export type RootStackParamList = {
   Tabs: undefined;
@@ -22,13 +23,14 @@ const Tab = createBottomTabNavigator<TabParamList>();
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 function Tabs() {
+  const t = useTheme();
   return (
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarStyle: { backgroundColor: '#16213e', borderTopColor: '#0f3460' },
-        tabBarActiveTintColor: '#6c63ff',
-        tabBarInactiveTintColor: '#555',
+        tabBarStyle: { backgroundColor: t.card, borderTopColor: t.border },
+        tabBarActiveTintColor: t.accent,
+        tabBarInactiveTintColor: t.textDisabled,
       }}
     >
       <Tab.Screen

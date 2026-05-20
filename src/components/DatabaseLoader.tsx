@@ -1,5 +1,8 @@
+import { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useDatabase } from '../hooks/useDatabase';
+import { useTheme } from '../theme/ThemeContext';
+import type { Theme } from '../theme/themes';
 
 const STATUS_TEXT: Record<string, string> = {
   checking:    '正在检查本地缓存...',
@@ -13,8 +16,50 @@ interface Props {
   children: React.ReactNode;
 }
 
+function createStyles(t: Theme) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: t.bg,
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: 32,
+    },
+    card: {
+      backgroundColor: t.card,
+      borderRadius: 20,
+      padding: 32,
+      alignItems: 'center',
+      width: '100%',
+      maxWidth: 400,
+      gap: 12,
+    },
+    icon: { fontSize: 48 },
+    title: { color: t.textPrimary, fontSize: 24, fontWeight: 'bold' },
+    subtitle: { color: t.textSecondary, fontSize: 15, textAlign: 'center' },
+    barBg: {
+      width: '100%',
+      height: 8,
+      backgroundColor: t.cardAlt,
+      borderRadius: 4,
+      overflow: 'hidden',
+      marginTop: 8,
+    },
+    barFill: {
+      height: '100%',
+      backgroundColor: t.accent,
+      borderRadius: 4,
+    },
+    progressText: { color: t.textSecondary, fontSize: 14 },
+    pct: { color: t.accent, fontWeight: 'bold' },
+    hint: { color: t.textDisabled, fontSize: 13, textAlign: 'center', lineHeight: 20 },
+  });
+}
+
 export function DatabaseLoader({ children }: Props) {
   const { ready, status, progress, loadedMB, totalMB, error } = useDatabase();
+  const t = useTheme();
+  const styles = useMemo(() => createStyles(t), [t]);
 
   if (ready) return <>{children}</>;
 
@@ -55,41 +100,3 @@ export function DatabaseLoader({ children }: Props) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0f0f1a',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 32,
-  },
-  card: {
-    backgroundColor: '#16213e',
-    borderRadius: 20,
-    padding: 32,
-    alignItems: 'center',
-    width: '100%',
-    maxWidth: 400,
-    gap: 12,
-  },
-  icon: { fontSize: 48 },
-  title: { color: 'white', fontSize: 24, fontWeight: 'bold' },
-  subtitle: { color: '#aaa', fontSize: 15, textAlign: 'center' },
-  barBg: {
-    width: '100%',
-    height: 8,
-    backgroundColor: '#0f3460',
-    borderRadius: 4,
-    overflow: 'hidden',
-    marginTop: 8,
-  },
-  barFill: {
-    height: '100%',
-    backgroundColor: '#6c63ff',
-    borderRadius: 4,
-  },
-  progressText: { color: '#ddd', fontSize: 14 },
-  pct: { color: '#6c63ff', fontWeight: 'bold' },
-  hint: { color: '#555', fontSize: 13, textAlign: 'center', lineHeight: 20 },
-});

@@ -1,7 +1,9 @@
-import { forwardRef, useRef, useCallback, useImperativeHandle, useEffect, useState } from 'react';
+import { forwardRef, useRef, useCallback, useImperativeHandle, useEffect, useState, useMemo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import * as d3 from 'd3';
 import type { GraphData, GraphNode, GraphEdge } from './graphTypes';
+import { useTheme } from '../theme/ThemeContext';
+import type { Theme } from '../theme/themes';
 
 export interface ForceGraphHandle {
   loadGraph: (data: GraphData & { mode: 'force' | 'tree' }) => void;
@@ -37,6 +39,19 @@ const LEGEND_ITEMS = [
 ];
 
 type SimNode = GraphNode & d3.SimulationNodeDatum;
+
+function createStyles(t: Theme) {
+  return StyleSheet.create({
+    container: { flex: 1 },
+    legendWrap: { position: 'absolute', top: 12, right: 12, alignItems: 'flex-end' },
+    legendBtn: { width: 28, height: 28, borderRadius: 14, backgroundColor: t.accent + 'b3', alignItems: 'center', justifyContent: 'center', marginTop: 4 },
+    legendBtnText: { color: 'white', fontSize: 14, fontWeight: 'bold' },
+    legendPanel: { backgroundColor: t.card + 'eb', borderRadius: 10, padding: 10, gap: 6, borderWidth: 1, borderColor: t.accent + '4d' },
+    legendRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+    dot: { width: 10, height: 10, borderRadius: 5 },
+    legendLabel: { color: t.textSecondary, fontSize: 12 },
+  });
+}
 
 function renderForce(
   svg: d3.Selection<SVGSVGElement, unknown, null, undefined>,
@@ -186,6 +201,8 @@ export const ForceGraph = forwardRef<ForceGraphHandle, Props>(({ onNodeTap, onRe
   const svgRef = useRef<SVGSVGElement>(null);
   const simRef = useRef<d3.Simulation<SimNode, undefined> | null>(null);
   const [legendVisible, setLegendVisible] = useState(false);
+  const t = useTheme();
+  const styles = useMemo(() => createStyles(t), [t]);
 
   useEffect(() => { onReady?.(); }, []);
 
@@ -203,7 +220,7 @@ export const ForceGraph = forwardRef<ForceGraphHandle, Props>(({ onNodeTap, onRe
 
   return (
     <View style={styles.container}>
-      <svg ref={svgRef} style={{ width: '100%', height: '100%', background: '#0f0f1a' } as any} />
+      <svg ref={svgRef} style={{ width: '100%', height: '100%', background: t.graphBg } as any} />
 
       {/* 图例 */}
       <View style={styles.legendWrap}>
@@ -226,14 +243,3 @@ export const ForceGraph = forwardRef<ForceGraphHandle, Props>(({ onNodeTap, onRe
 });
 
 ForceGraph.displayName = 'ForceGraph';
-
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-  legendWrap: { position: 'absolute', top: 12, right: 12, alignItems: 'flex-end' },
-  legendBtn: { width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(108,99,255,0.7)', alignItems: 'center', justifyContent: 'center', marginTop: 4 },
-  legendBtnText: { color: 'white', fontSize: 14, fontWeight: 'bold' },
-  legendPanel: { backgroundColor: 'rgba(22,33,62,0.92)', borderRadius: 10, padding: 10, gap: 6, borderWidth: 1, borderColor: 'rgba(108,99,255,0.3)' },
-  legendRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  dot: { width: 10, height: 10, borderRadius: 5 },
-  legendLabel: { color: '#ddd', fontSize: 12 },
-});

@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState, useCallback } from 'react';
+import { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
@@ -10,8 +10,25 @@ import { useWordGraph } from '../hooks/useWordGraph';
 import { useWordDetail } from '../hooks/useWordDetail';
 import { useSettings } from '../hooks/useSettings';
 import { toggleFavorite, isFavorited } from '../storage/storage';
+import { useTheme } from '../theme/ThemeContext';
+import type { Theme } from '../theme/themes';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Graph'>;
+
+function createStyles(t: Theme) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: t.bg },
+    navbar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, gap: 10 },
+    backBtn: { padding: 4 },
+    backText: { color: t.accent, fontSize: 22 },
+    navWord: { color: t.textPrimary, fontSize: 18, fontWeight: 'bold' },
+    navPos: { color: t.textSecondary, fontSize: 14 },
+    graphArea: { flex: 1 },
+    sheetBg: { backgroundColor: t.card },
+    sheetHandle: { backgroundColor: t.accent },
+    notFound: { color: t.textSecondary, fontSize: 15, textAlign: 'center', margin: 32 },
+  });
+}
 
 export function GraphScreen({ route, navigation }: Props) {
   const { word: initialWord } = route.params;
@@ -24,6 +41,8 @@ export function GraphScreen({ route, navigation }: Props) {
   const { settings } = useSettings();
   const { graphData, loading: graphLoading } = useWordGraph(currentWord, settings);
   const { detail, loading: detailLoading } = useWordDetail(currentWord);
+  const t = useTheme();
+  const styles = useMemo(() => createStyles(t), [t]);
 
   useEffect(() => {
     isFavorited(currentWord).then(setFavorited);
@@ -68,7 +87,7 @@ export function GraphScreen({ route, navigation }: Props) {
 
       <View style={styles.graphArea}>
         {graphLoading && (
-          <ActivityIndicator style={StyleSheet.absoluteFill} color="#6c63ff" />
+          <ActivityIndicator style={StyleSheet.absoluteFill} color={t.accent} />
         )}
         <ForceGraph ref={graphRef} onNodeTap={handleNodeTap} />
       </View>
@@ -89,7 +108,7 @@ export function GraphScreen({ route, navigation }: Props) {
               onWordPress={handleNodeTap}
             />
           ) : detailLoading ? (
-            <ActivityIndicator style={{ margin: 32 }} color="#6c63ff" />
+            <ActivityIndicator style={{ margin: 32 }} color={t.accent} />
           ) : (
             <Text style={styles.notFound}>"{currentWord}" not found</Text>
           )}
@@ -98,16 +117,3 @@ export function GraphScreen({ route, navigation }: Props) {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0f0f1a' },
-  navbar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, gap: 10 },
-  backBtn: { padding: 4 },
-  backText: { color: '#6c63ff', fontSize: 22 },
-  navWord: { color: 'white', fontSize: 18, fontWeight: 'bold' },
-  navPos: { color: '#888', fontSize: 14 },
-  graphArea: { flex: 1 },
-  sheetBg: { backgroundColor: '#16213e' },
-  sheetHandle: { backgroundColor: '#6c63ff' },
-  notFound: { color: '#888', fontSize: 15, textAlign: 'center', margin: 32 },
-});
